@@ -1,0 +1,9 @@
+# Python virtual environment
+myenv/
+venv/
+env/
+.env/ 
+
+
+# Large files
+
