@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const startWebcamBtn = document.getElementById('start-webcam-btn');
     
     let stream = null;
+    let isCapturing = false;
+    let captureInterval = null;
+    const captureDelay = 200; // Délai entre les captures en ms
     
     // Prévisualisation de l'image téléchargée
     imageUpload.addEventListener('change', function() {
@@ -71,6 +74,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (stream) {
             stopWebcam();
             startWebcamBtn.textContent = 'Démarrer la webcam';
+            captureBtn.textContent = 'Activer la détection continue';
+            isCapturing = false;
+            if (captureInterval) {
+                clearInterval(captureInterval);
+                captureInterval = null;
+            }
         } else {
             navigator.mediaDevices.getUserMedia({ video: true })
                 .then(function(s) {
@@ -92,24 +101,21 @@ document.addEventListener('DOMContentLoaded', function() {
             stream = null;
             video.srcObject = null;
         }
+        
+        if (captureInterval) {
+            clearInterval(captureInterval);
+            captureInterval = null;
+        }
+        isCapturing = false;
     }
     
-    // Capturer une image de la webcam
-    captureBtn.addEventListener('click', function() {
-        if (!stream) {
-            alert('Veuillez d\'abord démarrer la webcam');
-            return;
-        }
+    // Fonction pour capturer une image
+    function captureImage() {
+        if (!stream) return;
         
         const context = canvas.getContext('2d');
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = canvas.toDataURL('image/png');
-        
-        // Afficher le chargement
-        loading.style.display = 'block';
-        predictedLetter.textContent = '';
-        confidence.textContent = '';
-        predictionsList.innerHTML = '';
         
         // Envoyer l'image au serveur
         fetch('/webcam_predict', {
@@ -121,15 +127,41 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            displayPrediction(data);
+            if (!data.error) {
+                displayPrediction(data);
+            }
         })
         .catch(error => {
             console.error('Erreur:', error);
-            alert('Une erreur est survenue lors de l\'analyse');
-        })
-        .finally(() => {
-            loading.style.display = 'none';
         });
+    }
+    
+    // Activer/désactiver la détection continue
+    captureBtn.addEventListener('click', function() {
+        if (!stream) {
+            alert('Veuillez d\'abord démarrer la webcam');
+            return;
+        }
+        
+        if (isCapturing) {
+            // Arrêter la capture continue
+            clearInterval(captureInterval);
+            captureInterval = null;
+            isCapturing = false;
+            captureBtn.textContent = 'Activer la détection continue';
+            loading.style.display = 'none';
+        } else {
+            // Démarrer la capture continue
+            isCapturing = true;
+            captureBtn.textContent = 'Désactiver la détection continue';
+            loading.style.display = 'block';
+            
+            // Première capture immédiate
+            captureImage();
+            
+            // Puis capture à intervalles réguliers
+            captureInterval = setInterval(captureImage, captureDelay);
+        }
     });
     
     // Afficher les résultats de prédiction

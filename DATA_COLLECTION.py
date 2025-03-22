@@ -26,6 +26,7 @@ while True:
             imgResizeShape = imgResize.shape
             wGap = math.ceil((imgSize - wCal) / 2)
             imgWhite[:, wGap:wCal + wGap] = imgResize
+            
         else:
             k = imgSize / w
             hCal = math.ceil(k * h)

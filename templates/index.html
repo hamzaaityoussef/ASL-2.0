@@ -6,81 +6,76 @@
     <title>Reconnaissance de Langue des Signes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #video-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        #captured-text {
+            min-height: 50px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        .action-btn {
+            margin: 5px;
+        }
+        #current-letter {
+            font-size: 60px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            height: 80px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center mb-4">Reconnaissance de Langue des Signes Américaine</h1>
         
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-8 mx-auto">
                 <div class="card">
                     <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload" type="button" role="tab">Télécharger une image</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="webcam-tab" data-bs-toggle="tab" data-bs-target="#webcam" type="button" role="tab">Utiliser la webcam</button>
-                            </li>
-                        </ul>
+                        <h5>Détection en temps réel</h5>
                     </div>
                     <div class="card-body">
-                        <div class="tab-content" id="myTabContent">
-                            <!-- Onglet téléchargement d'image -->
-                            <div class="tab-pane fade show active" id="upload" role="tabpanel">
-                                <form id="upload-form" enctype="multipart/form-data">
-                                    <div class="mb-3">
-                                        <label for="image-upload" class="form-label">Sélectionnez une image</label>
-                                        <input class="form-control" type="file" id="image-upload" accept="image/*">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Analyser</button>
-                                </form>
-                                <!-- Dans la section de prévisualisation -->
-                                <div id="upload-preview" class="mt-3 text-center">
-                                    <p class="text-muted">L'image sera redimensionnée à 300x300 pixels pour l'analyse</p>
-                                    <img id="preview-image" class="img-fluid d-none" alt="Aperçu">
-                                </div>
-                            </div>
-                            
-                            <!-- Onglet webcam -->
-                            <div class="tab-pane fade" id="webcam" role="tabpanel">
-                                <div class="text-center">
-                                    <video id="webcam-video" width="400" height="300" autoplay></video>
-                                    <div class="mt-3">
-                                        <button id="capture-btn" class="btn btn-primary">Capturer</button>
-                                        <button id="start-webcam-btn" class="btn btn-success">Démarrer la webcam</button>
-                                    </div>
-                                    <canvas id="webcam-canvas" width="400" height="300" class="d-none"></canvas>
-                                </div>
+                        <div id="video-container" class="text-center">
+                            <img src="{{ url_for('video_feed') }}" width="640" height="480" class="img-fluid">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12 text-center">
+                                <h5>Lettre détectée:</h5>
+                                <div id="current-letter">-</div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Résultat</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="result-container">
-                            <div class="text-center" id="loading" style="display: none;">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Chargement...</span>
-                                </div>
-                                <p>Analyse en cours...</p>
+                        
+                        <div id="text-section">
+                            <h5>Texte capturé:</h5>
+                            <div id="captured-text"></div>
+                            <div class="d-flex justify-content-between">
+                                <button id="add-letter-btn" class="btn btn-primary action-btn">Ajouter la lettre <span id="add-letter-text"></span></button>
+                                <button id="add-space-btn" class="btn btn-secondary action-btn">Ajouter un espace</button>
+                                <button id="clear-text-btn" class="btn btn-danger action-btn">Effacer le texte</button>
                             </div>
-                            
-                            <div id="prediction-result" class="text-center">
-                                <h2 id="predicted-letter" class="display-1"></h2>
-                                <p id="confidence"></p>
-                                
-                                <div id="top-predictions" class="mt-4">
-                                    <h5>Meilleures prédictions:</h5>
-                                    <ul id="predictions-list" class="list-group"></ul>
-                                </div>
-                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5>Instructions:</h5>
+                            <ol>
+                                <li>Placez votre main dans le cadre de la caméra</li>
+                                <li>Formez un signe avec votre main</li>
+                                <li>Cliquez sur "Ajouter la lettre" pour ajouter la lettre au texte</li>
+                                <li>Utilisez "Ajouter un espace" pour séparer les mots</li>
+                                <li>Utilisez "Effacer le texte" pour recommencer</li>
+                            </ol>
                         </div>
                     </div>
                 </div>
@@ -89,6 +84,88 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const capturedText = document.getElementById('captured-text');
+            const currentLetter = document.getElementById('current-letter');
+            const addLetterBtn = document.getElementById('add-letter-btn');
+            const addLetterText = document.getElementById('add-letter-text');
+            const addSpaceBtn = document.getElementById('add-space-btn');
+            const clearTextBtn = document.getElementById('clear-text-btn');
+            
+            // Mettre à jour la lettre détectée
+            function updateCurrentLetter() {
+                fetch('/get_current_prediction')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.letter) {
+                        currentLetter.textContent = data.letter;
+                        addLetterText.textContent = `"${data.letter}"`;
+                        addLetterBtn.disabled = false;
+                    } else {
+                        currentLetter.textContent = "-";
+                        addLetterText.textContent = "";
+                        addLetterBtn.disabled = true;
+                    }
+                });
+            }
+            
+            // Mettre à jour la lettre toutes les 300ms
+            setInterval(updateCurrentLetter, 300);
+            
+            // Ajouter la lettre détectée actuellement
+            addLetterBtn.addEventListener('click', function() {
+                fetch('/add_letter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ letter: 'current' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        capturedText.textContent = data.text;
+                    } else if (data.error) {
+                        alert(data.error);
+                    }
+                });
+            });
+            
+            // Ajouter un espace
+            addSpaceBtn.addEventListener('click', function() {
+                fetch('/add_letter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ letter: ' ' })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        capturedText.textContent = data.text;
+                    }
+                });
+            });
+            
+            // Effacer le texte
+            clearTextBtn.addEventListener('click', function() {
+                fetch('/clear_text', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        capturedText.textContent = '';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
