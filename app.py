@@ -24,13 +24,15 @@ imgSize = 300
 # Variables globales pour stocker les lettres détectées
 detected_letters = []
 current_prediction = None  # Pour stocker la prédiction actuelle
+current_confidence = 0.0   # Pour stocker la confiance de la prédiction actuelle
+CONFIDENCE_THRESHOLD = 0.6  # Seuil de confiance minimum (60%)
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
 def generate_frames():
-    global current_prediction
+    global current_prediction, current_confidence
     cap = cv2.VideoCapture(0)
     while True:
         success, img = cap.read()
@@ -72,24 +74,37 @@ def generate_frames():
                 prediction = model.predict(img_array)
                 index = np.argmax(prediction[0])
                 confidence = prediction[0][index]
-                predicted_letter = CLASSES[index]
                 
-                # Store current prediction
-                current_prediction = predicted_letter
+                # Mettre à jour la prédiction seulement si la confiance est suffisante
+                if confidence >= CONFIDENCE_THRESHOLD:
+                    predicted_letter = CLASSES[index]
+                    current_prediction = predicted_letter
+                    current_confidence = confidence
+                    
+                    # Texte pour l'affichage
+                    display_text = f'{predicted_letter} ({confidence:.2f})'
+                else:
+                    # Si la confiance est trop faible, mais avons quand même une prédiction précédente
+                    display_text = f'? ({confidence:.2f})'
+                    # On garde la prédiction actuelle
                 
                 # Draw prediction results
                 cv2.rectangle(imgOutput, (x - offset, y - offset-50),
-                            (x - offset+90, y - offset-50+50), (255, 0, 255), cv2.FILLED)
-                cv2.putText(imgOutput, f'{predicted_letter} ({confidence:.2f})', 
+                            (x - offset+150, y - offset-50+50), (255, 0, 255), cv2.FILLED)
+                cv2.putText(imgOutput, display_text, 
                             (x, y -26), cv2.FONT_HERSHEY_COMPLEX, 1.0, (255, 255, 255), 2)
                 cv2.rectangle(imgOutput, (x-offset, y-offset),
                             (x + w+offset, y + h+offset), (255, 0, 255), 4)
+                
+                # Dessiner également le cadre de la main prétraitée
+                cv2.imshow("Image preprocessing", imgWhite)
                 
             except Exception as e:
                 print(f"Error processing frame: {e}")
         else:
             # No hand detected
             current_prediction = None
+            current_confidence = 0.0
         
         # Encode the frame in JPEG format
         ret, buffer = cv2.imencode('.jpg', imgOutput)
@@ -112,12 +127,12 @@ def add_letter():
     
     if letter == 'current' and current_prediction:
         detected_letters.append(current_prediction)
-    elif letter != 'current':  # Pour les espaces ou autres caractères manuels
+        return jsonify({'success': True, 'text': ''.join(detected_letters)})
+    elif letter and letter != 'current':  # Lettre spécifiée directement (espace ou lettre)
         detected_letters.append(letter)
+        return jsonify({'success': True, 'text': ''.join(detected_letters)})
     else:
         return jsonify({'success': False, 'error': 'Aucune lettre détectée'})
-        
-    return jsonify({'success': True, 'text': ''.join(detected_letters)})
 
 @app.route('/clear_text', methods=['POST'])
 def clear_text():
@@ -127,8 +142,23 @@ def clear_text():
 
 @app.route('/get_current_prediction', methods=['GET'])
 def get_current_prediction():
-    global current_prediction
-    return jsonify({'letter': current_prediction if current_prediction else ''})
+    global current_prediction, current_confidence
+    return jsonify({
+        'letter': current_prediction if current_prediction else '',
+        'confidence': current_confidence
+    })
+
+@app.route('/set_confidence_threshold', methods=['POST'])
+def set_confidence_threshold():
+    global CONFIDENCE_THRESHOLD
+    data = request.json
+    threshold = data.get('threshold')
+    
+    if threshold is not None and 0 <= threshold <= 1:
+        CONFIDENCE_THRESHOLD = threshold
+        return jsonify({'success': True, 'threshold': CONFIDENCE_THRESHOLD})
+    
+    return jsonify({'success': False, 'error': 'Seuil invalide'})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -33,6 +33,27 @@
             align-items: center;
             justify-content: center;
         }
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #007bff;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .detection-settings {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body>
@@ -54,10 +75,28 @@
                             <div class="col-md-12 text-center">
                                 <h5>Lettre détectée:</h5>
                                 <div id="current-letter">-</div>
+                                <div class="progress-container">
+                                    <div id="detection-progress" class="progress-bar"></div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div id="text-section">
+                        <div class="detection-settings">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="auto-detection-toggle">
+                                <label class="form-check-label" for="auto-detection-toggle">Détection automatique</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="detection-time" class="form-label">Temps de détection: <span id="detection-time-value">2</span> secondes</label>
+                                <input type="range" class="form-range" min="0.5" max="5" step="0.5" value="2" id="detection-time">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confidence-threshold" class="form-label">Seuil de confiance: <span id="confidence-threshold-value">60</span>%</label>
+                                <input type="range" class="form-range" min="10" max="95" step="5" value="60" id="confidence-threshold">
+                            </div>
+                        </div>
+                        
+                        <div id="text-section" class="mt-3">
                             <h5>Texte capturé:</h5>
                             <div id="captured-text"></div>
                             <div class="d-flex justify-content-between">
@@ -72,7 +111,8 @@
                             <ol>
                                 <li>Placez votre main dans le cadre de la caméra</li>
                                 <li>Formez un signe avec votre main</li>
-                                <li>Cliquez sur "Ajouter la lettre" pour ajouter la lettre au texte</li>
+                                <li>Mode manuel: Cliquez sur "Ajouter la lettre" pour ajouter la lettre au texte</li>
+                                <li>Mode automatique: Maintenez votre main stable pendant le temps défini</li>
                                 <li>Utilisez "Ajouter un espace" pour séparer les mots</li>
                                 <li>Utilisez "Effacer le texte" pour recommencer</li>
                             </ol>
@@ -92,28 +132,130 @@
             const addLetterText = document.getElementById('add-letter-text');
             const addSpaceBtn = document.getElementById('add-space-btn');
             const clearTextBtn = document.getElementById('clear-text-btn');
+            const detectionProgress = document.getElementById('detection-progress');
+            const autoDetectionToggle = document.getElementById('auto-detection-toggle');
+            const detectionTime = document.getElementById('detection-time');
+            const detectionTimeValue = document.getElementById('detection-time-value');
+            const confidenceThreshold = document.getElementById('confidence-threshold');
+            const confidenceThresholdValue = document.getElementById('confidence-threshold-value');
+            
+            let lastLetter = '';
+            let letterStartTime = 0;
+            let isAutoDetectionEnabled = false;
+            let detectionDuration = 2000; // 2 secondes par défaut
+            let lastAddedLetter = '';
+            
+            // Mettre à jour le temps de détection quand l'utilisateur change le slider
+            detectionTime.addEventListener('input', function() {
+                const timeInSec = this.value;
+                detectionTimeValue.textContent = timeInSec;
+                detectionDuration = timeInSec * 1000;
+            });
+            
+            // Mettre à jour le seuil de confiance
+            confidenceThreshold.addEventListener('input', function() {
+                const thresholdValue = this.value;
+                confidenceThresholdValue.textContent = thresholdValue;
+                
+                // Envoyer le nouveau seuil au serveur
+                fetch('/set_confidence_threshold', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ threshold: thresholdValue / 100 })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error("Erreur lors de la mise à jour du seuil:", data.error);
+                    }
+                });
+            });
+            
+            // Activer/désactiver la détection automatique
+            autoDetectionToggle.addEventListener('change', function() {
+                isAutoDetectionEnabled = this.checked;
+                if (!isAutoDetectionEnabled) {
+                    detectionProgress.style.width = '0%';
+                }
+            });
             
             // Mettre à jour la lettre détectée
             function updateCurrentLetter() {
                 fetch('/get_current_prediction')
                 .then(response => response.json())
                 .then(data => {
-                    if (data.letter) {
-                        currentLetter.textContent = data.letter;
-                        addLetterText.textContent = `"${data.letter}"`;
+                    const letter = data.letter;
+                    const confidence = data.confidence;
+                    
+                    if (letter) {
+                        // Afficher la lettre avec sa confiance
+                        currentLetter.textContent = `${letter} (${(confidence * 100).toFixed(0)}%)`;
+                        addLetterText.textContent = `"${letter}"`;
                         addLetterBtn.disabled = false;
+                        
+                        // Logique de détection automatique
+                        if (isAutoDetectionEnabled) {
+                            const now = Date.now();
+                            
+                            if (letter !== lastLetter) {
+                                // Nouvelle lettre détectée, réinitialiser le compteur
+                                lastLetter = letter;
+                                letterStartTime = now;
+                                detectionProgress.style.width = '0%';
+                            } else {
+                                // Même lettre, vérifier le temps écoulé
+                                const elapsedTime = now - letterStartTime;
+                                const progressPercentage = Math.min(100, (elapsedTime / detectionDuration) * 100);
+                                detectionProgress.style.width = `${progressPercentage}%`;
+                                
+                                if (elapsedTime >= detectionDuration && letter !== lastAddedLetter) {
+                                    // Le temps est écoulé, ajouter la lettre
+                                    addLetterToText(letter);
+                                    lastAddedLetter = letter;
+                                    
+                                    // Réinitialiser pour éviter d'ajouter plusieurs fois la même lettre
+                                    letterStartTime = now;
+                                    detectionProgress.style.width = '0%';
+                                }
+                            }
+                        }
                     } else {
                         currentLetter.textContent = "-";
                         addLetterText.textContent = "";
                         addLetterBtn.disabled = true;
+                        
+                        // Réinitialiser le compteur si aucune lettre n'est détectée
+                        if (isAutoDetectionEnabled) {
+                            detectionProgress.style.width = '0%';
+                            lastLetter = '';
+                        }
                     }
                 });
             }
             
-            // Mettre à jour la lettre toutes les 300ms
-            setInterval(updateCurrentLetter, 300);
+            // Ajouter une lettre au texte
+            function addLetterToText(letter) {
+                fetch('/add_letter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ letter: letter })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        capturedText.textContent = data.text;
+                    }
+                });
+            }
             
-            // Ajouter la lettre détectée actuellement
+            // Mettre à jour la lettre toutes les 100ms
+            setInterval(updateCurrentLetter, 100);
+            
+            // Ajouter la lettre détectée actuellement (bouton manuel)
             addLetterBtn.addEventListener('click', function() {
                 fetch('/add_letter', {
                     method: 'POST',
@@ -126,6 +268,10 @@
                 .then(data => {
                     if (data.success) {
                         capturedText.textContent = data.text;
+                        // Mettre à jour la dernière lettre ajoutée pour éviter les doublons en mode auto
+                        if (currentLetter.textContent !== "-") {
+                            lastAddedLetter = currentLetter.textContent;
+                        }
                     } else if (data.error) {
                         alert(data.error);
                     }
@@ -145,6 +291,8 @@
                 .then(data => {
                     if (data.success) {
                         capturedText.textContent = data.text;
+                        // Réinitialiser la dernière lettre ajoutée après un espace
+                        lastAddedLetter = '';
                     }
                 });
             });
@@ -162,6 +310,7 @@
                 .then(data => {
                     if (data.success) {
                         capturedText.textContent = '';
+                        lastAddedLetter = '';
                     }
                 });
             });
