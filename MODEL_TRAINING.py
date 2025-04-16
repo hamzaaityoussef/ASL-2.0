@@ -46,7 +46,7 @@ class DataGenerator(Sequence):
         return X, to_categorical(y, num_classes=self.n_classes)
 
 def prepare_data():
-    data_dir = "Data"
+    data_dir = "DATA"
     categories = os.listdir(data_dir)
     
     image_paths = []
@@ -130,7 +130,7 @@ def main():
     print("Training model...")
     history = model.fit(
         train_generator,
-        epochs=2,
+        epochs=20,
         validation_data=test_generator
     )
     
