@@ -7,7 +7,7 @@ cap = cv2.VideoCapture(0)
 detector = HandDetector(maxHands=1)
 offset = 20
 imgSize = 300
-folder = "Data/A"
+folder = "datahanaa/Y"
 counter = 0
 while True:
     success, img = cap.read()
@@ -26,7 +26,6 @@ while True:
             imgResizeShape = imgResize.shape
             wGap = math.ceil((imgSize - wCal) / 2)
             imgWhite[:, wGap:wCal + wGap] = imgResize
-            
         else:
             k = imgSize / w
             hCal = math.ceil(k * h)
