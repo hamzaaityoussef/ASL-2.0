@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASL Quiz - Practice Your Signs</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            display: flex;
+            min-height: 100vh;
+            padding: 2rem;
+            gap: 2rem;
+        }
+
+        .camera-section, .instruction-section {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 480px;
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .camera-feed img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .word-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .current-letter {
+            font-size: 8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 2rem 0;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-section {
+            margin-top: 2rem;
+        }
+
+        .progress {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transition: width 0.3s ease;
+        }
+
+        .letter-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .letter-progress span {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .confidence-display {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-quiz {
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-start {
+            background: linear-gradient(45deg, var(--accent-color), var(--primary-color));
+            color: white;
+            border: none;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-next {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-next:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            min-height: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .correct {
+            color: #28a745;
+        }
+
+        .incorrect {
+            color: #dc3545;
+        }
+
+        .congratulations {
+            background: linear-gradient(45deg, #4a6fa5, #166088);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            animation: slideIn 0.5s ease-out;
+            margin-top: 2rem;
+        }
+
+        .congratulations h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .congratulations p {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .congratulations .score {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4fc3f7;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .quiz-container {
+                flex-direction: column;
+            }
+            
+            .camera-feed {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- Camera Section -->
+        <div class="camera-section">
+            <h2 class="text-center mb-4">Your Camera Feed</h2>
+            <div class="camera-feed">
+                <img src="{{ url_for('video_feed') }}" alt="Camera Feed">
+            </div>
+            <div class="confidence-display">
+                Confidence: <span id="confidence">0%</span>
+            </div>
+        </div>
+
+        <!-- Instruction Section -->
+        <div class="instruction-section">
+            <h2 class="text-center mb-4">Sign the Word</h2>
+            <div class="word-display" id="target-word">HELLO</div>
+            <div class="current-letter" id="current-letter">H</div>
+            
+            <div class="progress-section">
+                <div class="progress">
+                    <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <div class="letter-progress">
+                    <span>Letter <span id="current-position">1</span> of <span id="total-letters">5</span></span>
+                    <span>Score: <span id="score">0</span></span>
+                </div>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+
+            <div class="controls">
+                <button class="btn btn-quiz btn-start" id="start-quiz">Start Quiz</button>
+                <button class="btn btn-quiz btn-next" id="next-letter" >Next Letter</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const startButton = document.getElementById('start-quiz');
+            const nextButton = document.getElementById('next-letter');
+            const targetWord = document.getElementById('target-word');
+            const currentLetter = document.getElementById('current-letter');
+            const progressBar = document.getElementById('progress-bar');
+            const currentPosition = document.getElementById('current-position');
+            const totalLetters = document.getElementById('total-letters');
+            const scoreDisplay = document.getElementById('score');
+            const feedback = document.getElementById('feedback');
+            const confidence = document.getElementById('confidence');
+
+            let currentWord = '';
+            let currentIndex = 0;
+            let score = 0;
+            let isQuizActive = false;
+            let lastCorrectLetter = '';
+
+            // Sample words for the quiz
+            const words = [
+                'HELLO', 'WORLD', 'LEARN', 'SIGN', 'LANGUAGE',
+                'FRIEND', 'TEACH', 'STUDY', 'PRACTICE', 'COMMUNICATE', 'LOVE', 'HAPPY', 'SMILE', 'THANK', 'YOU'
+            ];
+
+            function startQuiz() {
+                // Select a random word
+                currentWord = words[Math.floor(Math.random() * words.length)];
+                currentIndex = 0;
+                score = 0;
+                isQuizActive = true;
+                lastCorrectLetter = '';
+
+                // Update displays
+                targetWord.textContent = currentWord;
+                currentLetter.textContent = currentWord[0];
+                currentPosition.textContent = '1';
+                totalLetters.textContent = currentWord.length;
+                scoreDisplay.textContent = '0';
+                progressBar.style.width = '0%';
+                feedback.textContent = '';
+                feedback.className = 'feedback';
+
+                // Enable/disable buttons
+                startButton.disabled = true;
+                nextButton.disabled = false;
+            }
+
+            function moveToNextLetter() {
+                if (currentIndex < currentWord.length - 1) {
+                    currentIndex++;
+                    currentLetter.textContent = currentWord[currentIndex];
+                    currentPosition.textContent = currentIndex + 1;
+                    updateProgress();
+                    feedback.textContent = '';
+                    feedback.className = 'feedback';
+                    lastCorrectLetter = '';
+                } else {
+                    // Quiz completed
+                    isQuizActive = false;
+                    feedback.innerHTML = `
+                        <div class="congratulations">
+                            <h3>🎉 Quiz Completed! 🎉</h3>
+                            <p>You've completed the word:</p>
+                            <p style="font-size: 2rem; font-weight: bold;">"${currentWord}"</p>
+                            <p>Your score:</p>
+                            <div class="score">${score}/${currentWord.length}</div>
+                        </div>
+                    `;
+                    startButton.disabled = false;
+                    nextButton.disabled = true;
+                }
+            }
+
+            function updateProgress() {
+                const progress = (currentIndex / currentWord.length) * 100;
+                progressBar.style.width = `${progress}%`;
+            }
+
+            // Function to check if the detected letter matches the current target letter
+            function checkLetter(detectedLetter) {
+                if (!isQuizActive) return;
+
+                const targetLetter = currentWord[currentIndex];
+                if (detectedLetter === targetLetter && detectedLetter !== lastCorrectLetter) {
+                    feedback.textContent = 'Correct!';
+                    feedback.className = 'feedback correct';
+                    score++;
+                    scoreDisplay.textContent = score;
+                    lastCorrectLetter = detectedLetter;
+                    
+                    // Automatically move to next letter after a short delay
+                    setTimeout(() => {
+                        moveToNextLetter();
+                    }, 1000); // Wait 1 second before moving to next letter
+                } else if (detectedLetter !== targetLetter && detectedLetter !== lastCorrectLetter) {
+                    // feedback.textContent = 'Try again!';
+                    feedback.className = 'feedback incorrect';
+                }
+            }
+
+            // Event listeners
+            startButton.addEventListener('click', startQuiz);
+            nextButton.addEventListener('click', moveToNextLetter);
+
+            // Function to update confidence from the server
+            function updateConfidence() {
+                fetch('/get_current_prediction')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.letter && data.confidence) {
+                            confidence.textContent = `${(data.confidence * 100).toFixed(0)}%`;
+                            if (data.confidence >= 0.6) { // Only check if confidence is high enough
+                                checkLetter(data.letter);
+                            }
+                        }
+                    });
+            }
+
+            // Update confidence every 100ms
+            setInterval(updateConfidence, 100);
+        });
+    </script>
+</body>
+</html>
