@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn ASL Letters</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: 100vh;
+            padding: 2rem;
+            gap: 2rem;
+            margin: 0 2rem 2rem 0;
+            width: 100%;
+        }
+
+        .camera-section, .instruction-section {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .alphabet-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin: 0 2rem 2rem 2rem;
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 480px;
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .camera-feed img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .target-letter {
+            font-size: 8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-align: center;
+            margin: 2rem 0;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .letter-image {
+            max-width: 200px;
+            margin: 0 auto;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .confidence-display {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .progress-section {
+            margin-top: 2rem;
+        }
+
+        .progress {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transition: width 0.3s ease;
+        }
+
+        .letter-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
+
+        .letter-progress span {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-learn {
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-next {
+            background: linear-gradient(45deg, var(--accent-color), var(--primary-color));
+            color: white;
+            border: none;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            min-height: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .correct {
+            color: #28a745;
+        }
+
+        .incorrect {
+            color: #dc3545;
+        }
+
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .letter-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .letter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .letter-card img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 0.5rem;
+            border-radius: 5px;
+        }
+
+        .congratulations {
+            background: linear-gradient(45deg, #4a6fa5, #166088);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            margin-top: 2rem;
+        }
+
+        .congratulations h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .camera-feed {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .alphabet-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .camera-feed {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <!-- Camera Section -->
+        <div class="camera-section">
+            <h2 class="text-center mb-4">Your Camera Feed</h2>
+            <div class="camera-feed">
+                <img src="{{ url_for('video_feed') }}" alt="Camera Feed">
+            </div>
+            <div class="confidence-display">
+                Confidence: <span id="confidence-text">0%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" id="confidence-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Instruction Section -->
+        <div class="instruction-section">
+            <h2 class="text-center mb-4">Learn ASL Letters</h2>
+            <div class="target-letter" id="target-letter">A</div>
+            <img src="/static/images/A.png" alt="Letter A" class="letter-image" id="letter-image">
+            
+            <div class="feedback" id="feedback"></div>
+
+            <div class="controls">
+                <button class="btn btn-learn btn-next" id="next-letter">Next Letter</button>
+            </div>
+
+            <div class="progress-section">
+                <div class="letter-progress">
+                    <span>Letter <span id="current-position">1</span> of <span id="total-letters">26</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alphabet Section (full width at bottom) -->
+    <div class="alphabet-section">
+        <h3 class="text-center">ASL Alphabet</h3>
+        <div class="alphabet-grid" id="alphabet-grid">
+            <!-- Les lettres seront ajoutées dynamiquement -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const targetLetter = document.getElementById('target-letter');
+            const letterImage = document.getElementById('letter-image');
+            const feedback = document.getElementById('feedback');
+            const nextButton = document.getElementById('next-letter');
+            const confidenceBar = document.getElementById('confidence-bar');
+            const confidenceText = document.getElementById('confidence-text');
+            const alphabetGrid = document.getElementById('alphabet-grid');
+            const currentPosition = document.getElementById('current-position');
+            const totalLetters = document.getElementById('total-letters');
+            
+            // Alphabet ASL
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            let currentLetterIndex = 0;
+            let checkInterval;
+            
+            // Créer la grille d'alphabet
+            alphabet.forEach(letter => {
+                const card = document.createElement('div');
+                card.className = 'letter-card';
+                card.innerHTML = `
+                    <img src="/static/images/${letter}.png" alt="Letter ${letter}">
+                    <div>${letter}</div>
+                `;
+                card.addEventListener('click', () => {
+                    setTargetLetter(letter);
+                });
+                alphabetGrid.appendChild(card);
+            });
+
+            // Mettre à jour la position actuelle
+            function updatePosition() {
+                currentPosition.textContent = currentLetterIndex + 1;
+                totalLetters.textContent = alphabet.length;
+            }
+            
+            // Définir la lettre cible
+            function setTargetLetter(letter) {
+                currentLetterIndex = alphabet.indexOf(letter);
+                updateLetterDisplay();
+                startChecking();
+                updatePosition();
+            }
+            
+            // Mettre à jour l'affichage de la lettre
+            function updateLetterDisplay() {
+                const letter = alphabet[currentLetterIndex];
+                targetLetter.textContent = letter;
+                letterImage.src = `/static/images/${letter}.png`;
+                letterImage.alt = `Letter ${letter}`;
+                feedback.textContent = '';
+                feedback.className = 'feedback';
+            }
+            
+            // Passer à la lettre suivante
+            function nextLetter() {
+                currentLetterIndex = (currentLetterIndex + 1) % alphabet.length;
+                updateLetterDisplay();
+                startChecking();
+                updatePosition();
+            }
+            
+            // Commencer à vérifier le signe
+            function startChecking() {
+                // Arrêter toute vérification précédente
+                if (checkInterval) clearInterval(checkInterval);
+                
+                // Envoyer la lettre cible au serveur
+                const letter = alphabet[currentLetterIndex];
+                fetch('/set_target_letter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ letter: letter })
+                });
+                
+                // Vérifier périodiquement le signe
+                checkInterval = setInterval(checkSign, 500);
+            }
+            
+            // Vérifier si le signe est correct
+            function checkSign() {
+                fetch('/check_sign')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Mettre à jour la barre de confiance
+                            const confidence = Math.round(data.confidence * 100);
+                            confidenceBar.style.width = `${confidence}%`;
+                            confidenceText.textContent = `${confidence}%`;
+                            
+                            if (data.is_correct) {
+                                feedback.textContent = 'Correct! Well done!';
+                                feedback.className = 'feedback correct';
+                                
+                                // Animation de félicitations pour chaque lettre
+                                const congratsHTML = `
+                                    <div class="congratulations">
+                                        <h3>Great Job!</h3>
+                                        <p>You signed ${alphabet[currentLetterIndex]} correctly!</p>
+                                    </div>
+                                `;
+                                feedback.innerHTML = congratsHTML;
+                                
+                                // Supprimer le passage automatique à la lettre suivante
+                                // (ne fait plus rien ici, le changement se fera uniquement au clic)
+                            }
+                        }
+                    });
+            }
+            
+            // Événements
+            nextButton.addEventListener('click', nextLetter);
+            
+            // Démarrer avec la première lettre
+            setTargetLetter('A');
+            updatePosition();
+        });
+    </script>
+</body>
+</html>

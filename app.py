@@ -21,11 +21,11 @@ detector = HandDetector(maxHands=1)
 offset = 20
 imgSize = 300
 
-# Variables globales pour stocker les lettres détectées
-detected_letters = []
-current_prediction = None  # Pour stocker la prédiction actuelle
-current_confidence = 0.0   # Pour stocker la confiance de la prédiction actuelle
+# Variables globales pour le quiz
+current_prediction = None
+current_confidence = 0.0
 CONFIDENCE_THRESHOLD = 0.6  # Seuil de confiance minimum (60%)
+current_target_letter = None  # Lettre cible actuelle
 
 @app.route('/')
 def index():
@@ -34,6 +34,51 @@ def index():
 @app.route('/quiz')
 def quiz():
     return render_template('quiz.html')
+
+@app.route('/songs')
+def songs():
+    return render_template('songs.html')
+
+@app.route('/learn')
+def learn():
+    return render_template('learn.html')
+
+# Route pour définir la lettre cible
+@app.route('/set_target_letter', methods=['POST'])
+def set_target_letter():
+    global current_target_letter
+    data = request.json
+    current_target_letter = data.get('letter')
+    return jsonify({'status': 'success', 'letter': current_target_letter})
+
+# Route pour vérifier le signe
+@app.route('/check_sign', methods=['GET'])
+def check_sign():
+    global current_prediction, current_confidence, current_target_letter
+    
+    if current_target_letter is None:
+        return jsonify({
+            'status': 'error',
+            'message': 'No target letter set'
+        })
+    
+    if current_prediction is None:
+        return jsonify({
+            'status': 'error',
+            'message': 'No prediction available'
+        })
+    
+    # Vérifier si la prédiction correspond à la lettre cible
+    is_correct = (current_prediction == current_target_letter 
+                 and current_confidence >= CONFIDENCE_THRESHOLD)
+    
+    return jsonify({
+        'status': 'success',
+        'is_correct': is_correct,
+        'detected_letter': current_prediction,
+        'confidence': current_confidence,
+        'target_letter': current_target_letter
+    })
 
 def generate_frames():
     cap = cv2.VideoCapture(0)
@@ -65,22 +110,22 @@ def generate_frames():
                         hGap = math.ceil((imgSize - hCal) / 2)
                         imgWhite[hGap:hCal + hGap, :] = imgResize
                     
-                    # Prepare image for prediction
+                    # Préparer l'image pour la prédiction
                     img_array = cv2.cvtColor(imgWhite, cv2.COLOR_BGR2RGB)
                     img_array = img_array / 255.0
                     img_array = np.expand_dims(img_array, axis=0)
                     
-                    # Make prediction
+                    # Faire la prédiction
                     prediction = model.predict(img_array)
                     index = np.argmax(prediction[0])
                     confidence = prediction[0][index]
                     
-                    # Update global variables
+                    # Mettre à jour les variables globales
                     global current_prediction, current_confidence
                     current_prediction = CLASSES[index]
                     current_confidence = float(confidence)
                     
-                    # Draw prediction on frame
+                    # Dessiner la prédiction sur l'image
                     cv2.rectangle(img, (x - offset, y - offset-50),
                                 (x - offset+90, y - offset-50+50), (255, 0, 255), cv2.FILLED)
                     cv2.putText(img, f'{CLASSES[index]}', 
@@ -108,8 +153,5 @@ def get_current_prediction():
         'confidence': current_confidence
     })
 
-@app.route('/songs')
-def songs():
-    return render_template('songs.html')
 if __name__ == '__main__':
     app.run(debug=True)

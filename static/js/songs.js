@@ -1,15 +1,67 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Configuration
-    const YOUTUBE_API_KEY = 'AIzaSyAlA3c894fEz5ABvQnrir1h1lQ9q0_1OPs'; // Remplacez par votre clé
+    const YOUTUBE_API_KEY = 'AIzaSyAlA3c894fEz5ABvQnrir1h1lQ9q0_1OPs'; // Remplacez par votre clé API
     const PLAYLIST_ID = 'PLQK2XiUY9C2jQg-OhyWUKJfL9D5Ze2o1W'; // ID de la playlist
     const VIDEOS_PER_PAGE = 12;
     
     // Éléments DOM
     const videosGrid = document.getElementById('videosGrid');
-    const videoPlayer = document.getElementById('youtubePlayer');
-    const searchInput = document.getElementById('searchInput');
-    const loadMoreBtn = document.getElementById('loadMoreButton');
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const loadMoreBtn = document.getElementById('loadMoreButton');
+    const videoPlayerContainer = document.createElement('div');
+    const videoPlayer = document.createElement('iframe');
+    
+    // Création du lecteur vidéo
+    function createVideoPlayer() {
+        videoPlayerContainer.id = 'videoPlayerContainer';
+        videoPlayerContainer.style.display = 'none';
+        videoPlayerContainer.style.position = 'fixed';
+        videoPlayerContainer.style.top = '0';
+        videoPlayerContainer.style.left = '0';
+        videoPlayerContainer.style.width = '100%';
+        videoPlayerContainer.style.height = '100%';
+        videoPlayerContainer.style.backgroundColor = 'rgba(0,0,0,0.9)';
+        videoPlayerContainer.style.zIndex = '1000';
+        videoPlayerContainer.style.justifyContent = 'center';
+        videoPlayerContainer.style.alignItems = 'center';
+        
+        videoPlayer.id = 'youtubePlayer';
+        videoPlayer.style.width = '80%';
+        videoPlayer.style.height = '80%';
+        videoPlayer.style.maxWidth = '1200px';
+        videoPlayer.style.border = 'none';
+        videoPlayer.allow = 'autoplay; encrypted-media';
+        videoPlayer.allowfullscreen = true;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.id = 'closePlayer';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.top = '20px';
+        closeBtn.style.right = '20px';
+        closeBtn.style.fontSize = '2rem';
+        closeBtn.style.color = 'white';
+        closeBtn.style.background = 'none';
+        closeBtn.style.border = 'none';
+        closeBtn.style.cursor = 'pointer';
+        
+        closeBtn.addEventListener('click', function() {
+            videoPlayerContainer.style.display = 'none';
+            videoPlayer.src = '';
+        });
+        
+        videoPlayerContainer.appendChild(videoPlayer);
+        videoPlayerContainer.appendChild(closeBtn);
+        document.body.appendChild(videoPlayerContainer);
+    }
+    
+    // Vérification des éléments DOM
+    if (!videosGrid || !loadingIndicator || !loadMoreBtn) {
+        console.error('Éléments DOM manquants');
+        return;
+    }
+    
+    createVideoPlayer();
     
     // Variables d'état
     let nextPageToken = '';
@@ -23,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isLoading) return;
         
         isLoading = true;
-        loadingIndicator.style.display = 'block';
+        loadingIndicator.style.display = 'flex';
         loadMoreBtn.style.display = 'none';
         
         try {
@@ -38,9 +90,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url);
             const data = await response.json();
             
+            if (!data.items) throw new Error('Données invalides reçues de YouTube API');
+            
             nextPageToken = data.nextPageToken || '';
             
-            if (data.items?.length > 0) {
+            if (data.items.length > 0) {
                 const videoIds = data.items.map(item => item.snippet.resourceId.videoId).filter(Boolean);
                 
                 if (videoIds.length > 0) {
@@ -64,9 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("Erreur API YouTube:", error);
             videosGrid.innerHTML = `
-                <div class="error">
+                <div class="error" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
                     <p>Erreur de chargement de la playlist</p>
-                    <button onclick="window.location.reload()">Réessayer</button>
+                    <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Réessayer</button>
                 </div>
             `;
         } finally {
@@ -75,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Afficher les vidéos (même fonction que précédemment)
+    // Afficher les vidéos
     function displayVideos(videos) {
         videos.forEach(video => {
             const card = document.createElement('div');
@@ -89,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const duration = formatDuration(video.contentDetails?.duration);
             
             card.innerHTML = `
-                <div class="thumbnail" onclick="playVideo('${video.id}')">
+                <div class="thumbnail">
                     <img src="${thumbnail}" alt="${title}" onerror="this.src='https://i.imgur.com/6M9fYu3.png'">
                     <div class="play-icon"></div>
                     <div class="duration">${duration}</div>
@@ -100,11 +154,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
             
+            card.addEventListener('click', () => playVideo(video.id));
             videosGrid.appendChild(card);
         });
     }
 
-    // Formatage de la durée (identique)
+    // Formatage de la durée
     function formatDuration(duration) {
         if (!duration) return '00:00';
         
@@ -120,17 +175,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Lecture vidéo (identique)
-    window.playVideo = function(videoId) {
-        document.getElementById('videoPlayerContainer').style.display = 'flex';
+    // Lecture vidéo
+    function playVideo(videoId) {
+        videoPlayerContainer.style.display = 'flex';
         videoPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
     };
-
-    // Fermer le lecteur (identique)
-    document.getElementById('closePlayer').addEventListener('click', function() {
-        document.getElementById('videoPlayerContainer').style.display = 'none';
-        videoPlayer.src = '';
-    });
 
     // Charger plus de vidéos
     loadMoreBtn.addEventListener('click', function() {
@@ -138,18 +187,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Recherche dans la playlist
-    document.getElementById('searchButton').addEventListener('click', function() {
-        const query = searchInput.value.trim();
-        if (query) {
-            searchInPlaylist(query);
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            const query = document.getElementById('searchInput')?.value.trim();
+            if (query) {
+                searchInPlaylist(query);
+            }
         }
     });
 
     async function searchInPlaylist(query) {
+        if (!query || !videosGrid) return;
+        
         try {
-            // On recharge toute la playlist et on filtre côté client
-            // (L'API YouTube ne permet pas de rechercher directement dans une playlist)
-            loadingIndicator.style.display = 'block';
+            loadingIndicator.style.display = 'flex';
             videosGrid.innerHTML = '';
             
             let allVideos = [];
@@ -191,14 +242,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (filteredVideos.length > 0) {
                 displayVideos(filteredVideos);
             } else {
-                videosGrid.innerHTML = `<p class="no-results">Aucune vidéo trouvée pour "${query}"</p>`;
+                videosGrid.innerHTML = `
+                    <div class="no-results" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                        Aucune vidéo trouvée pour "${query}"
+                    </div>
+                `;
             }
         } catch (error) {
             console.error("Erreur recherche:", error);
             videosGrid.innerHTML = `
-                <div class="error">
+                <div class="error" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
                     <p>Erreur lors de la recherche</p>
-                    <button onclick="searchInPlaylist('${query}')">Réessayer</button>
+                    <button onclick="window.location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 5px; cursor: pointer;">Réessayer</button>
                 </div>
             `;
         } finally {
