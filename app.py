@@ -108,5 +108,8 @@ def get_current_prediction():
         'confidence': current_confidence
     })
 
+@app.route('/songs')
+def songs():
+    return render_template('songs.html')
 if __name__ == '__main__':
     app.run(debug=True)

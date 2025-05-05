@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun ASL Videos for Kids</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/songs.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1><span class="hand-emoji">👋</span> Welcome to ASL Fun!</h1>
+            <p class="subtitle">Learn sign language with awesome videos!</p>
+        </div>
+    </header>
+
+    <main>
+        <div class="videos-grid" id="videosGrid">
+            <!-- Les vidéos seront chargées ici par JavaScript -->
+        </div>
+
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Loading fun videos...</p>
+        </div>
+
+        <button class="load-more" id="loadMoreButton" style="display: none;">
+            More Videos <span class="emoji">🎬</span>
+        </button>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/songs.js') }}"></script>
+</body>
+</html>
