@@ -1,320 +1,270 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reconnaissance de Langue des Signes</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>ASL Learning Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        #video-container {
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4fc3f7;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 6rem 0;
+            margin-bottom: 4rem;
             position: relative;
-            margin-bottom: 20px;
+            overflow: hidden;
         }
-        #captured-text {
-            min-height: 50px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            font-size: 24px;
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="rgba(255,255,255,0.1)" d="M0 0h100v100H0z"/></svg>');
+            opacity: 0.1;
         }
-        .action-btn {
-            margin: 5px;
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
-        #current-letter {
-            font-size: 60px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            height: 80px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            opacity: 0.9;
         }
-        .progress-container {
-            width: 100%;
-            height: 10px;
-            background-color: #e9ecef;
-            border-radius: 5px;
-            margin-top: 5px;
-        }
-        .progress-bar {
+
+        .feature-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
             height: 100%;
-            background-color: #007bff;
-            border-radius: 5px;
-            width: 0%;
-            transition: width 0.1s linear;
+            position: relative;
+            overflow: hidden;
+            border: none;
         }
-        .detection-settings {
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            background-color: #f8f9fa;
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            color: var(--accent-color);
+        }
+
+        .feature-title {
+            color: var(--secondary-color);
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+            font-size: 1.8rem;
+        }
+
+        .feature-description {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .btn-feature {
+            background: linear-gradient(45deg, var(--accent-color), var(--primary-color));
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 30px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-feature::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-feature:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-feature:hover::before {
+            left: 100%;
+        }
+
+        .section-title {
+            color: var(--secondary-color);
+            margin-bottom: 3rem;
+            font-weight: 700;
+            font-size: 2.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            margin: 1rem auto;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .feature-card {
+                padding: 2rem;
+            }
+        }
+
+        /* Animation for cards */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-card {
+            animation: fadeInUp 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .feature-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .feature-card:nth-child(3) {
+            animation-delay: 0.4s;
         }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Reconnaissance de Langue des Signes Américaine</h1>
-        
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="hero-title">Welcome to ASL Learning Platform</h1>
+            <p class="hero-subtitle">Start your journey to learn American Sign Language today!</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 class="section-title">Explore Our Features</h2>
         <div class="row">
-            <div class="col-md-8 mx-auto">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Détection en temps réel</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="video-container" class="text-center">
-                            <img src="{{ url_for('video_feed') }}" width="640" height="480" class="img-fluid">
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-12 text-center">
-                                <h5>Lettre détectée:</h5>
-                                <div id="current-letter">-</div>
-                                <div class="progress-container">
-                                    <div id="detection-progress" class="progress-bar"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="detection-settings">
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="auto-detection-toggle">
-                                <label class="form-check-label" for="auto-detection-toggle">Détection automatique</label>
-                            </div>
-                            <div class="mb-3">
-                                <label for="detection-time" class="form-label">Temps de détection: <span id="detection-time-value">2</span> secondes</label>
-                                <input type="range" class="form-range" min="0.5" max="5" step="0.5" value="2" id="detection-time">
-                            </div>
-                            <div class="mb-3">
-                                <label for="confidence-threshold" class="form-label">Seuil de confiance: <span id="confidence-threshold-value">60</span>%</label>
-                                <input type="range" class="form-range" min="10" max="95" step="5" value="60" id="confidence-threshold">
-                            </div>
-                        </div>
-                        
-                        <div id="text-section" class="mt-3">
-                            <h5>Texte capturé:</h5>
-                            <div id="captured-text"></div>
-                            <div class="d-flex justify-content-between">
-                                <button id="add-letter-btn" class="btn btn-primary action-btn">Ajouter la lettre <span id="add-letter-text"></span></button>
-                                <button id="add-space-btn" class="btn btn-secondary action-btn">Ajouter un espace</button>
-                                <button id="clear-text-btn" class="btn btn-danger action-btn">Effacer le texte</button>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h5>Instructions:</h5>
-                            <ol>
-                                <li>Placez votre main dans le cadre de la caméra</li>
-                                <li>Formez un signe avec votre main</li>
-                                <li>Mode manuel: Cliquez sur "Ajouter la lettre" pour ajouter la lettre au texte</li>
-                                <li>Mode automatique: Maintenez votre main stable pendant le temps défini</li>
-                                <li>Utilisez "Ajouter un espace" pour séparer les mots</li>
-                                <li>Utilisez "Effacer le texte" pour recommencer</li>
-                            </ol>
-                        </div>
-                    </div>
+            <!-- Learn Section -->
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-book-open feature-icon"></i>
+                    <h3 class="feature-title">Learn</h3>
+                    <p class="feature-description">
+                        Master the basics of ASL through interactive lessons .. Perfect for beginners!
+                    </p>
+                    <a href="/learn" class="btn btn-feature">Start Learning</a>
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-question-circle feature-icon"></i>
+                    <h3 class="feature-title">Quiz</h3>
+                    <br>
+                  
+                    <p class="feature-description">
+                        Test your knowledge with fun quizzes .
+                    </p>
+                    <br>
+                    
+                    <a href="/quiz" class="btn btn-feature">Take a Quiz</a>
+                </div>
+            </div>
+
+            <!-- Songs Section -->
+            <div class="col-md-4">
+                <div class="feature-card text-center">
+                    <i class="fas fa-music feature-icon"></i>
+                    <h3 class="feature-title">Songs</h3>
+                    <p class="feature-description">
+                        Learn ASL through popular songs and music videos. A fun way to practice your signing!
+                    </p>
+                    <a href="/songs" class="btn btn-feature">Explore Songs</a>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const capturedText = document.getElementById('captured-text');
-            const currentLetter = document.getElementById('current-letter');
-            const addLetterBtn = document.getElementById('add-letter-btn');
-            const addLetterText = document.getElementById('add-letter-text');
-            const addSpaceBtn = document.getElementById('add-space-btn');
-            const clearTextBtn = document.getElementById('clear-text-btn');
-            const detectionProgress = document.getElementById('detection-progress');
-            const autoDetectionToggle = document.getElementById('auto-detection-toggle');
-            const detectionTime = document.getElementById('detection-time');
-            const detectionTimeValue = document.getElementById('detection-time-value');
-            const confidenceThreshold = document.getElementById('confidence-threshold');
-            const confidenceThresholdValue = document.getElementById('confidence-threshold-value');
-            
-            let lastLetter = '';
-            let letterStartTime = 0;
-            let isAutoDetectionEnabled = false;
-            let detectionDuration = 2000; // 2 secondes par défaut
-            let lastAddedLetter = '';
-            
-            // Mettre à jour le temps de détection quand l'utilisateur change le slider
-            detectionTime.addEventListener('input', function() {
-                const timeInSec = this.value;
-                detectionTimeValue.textContent = timeInSec;
-                detectionDuration = timeInSec * 1000;
-            });
-            
-            // Mettre à jour le seuil de confiance
-            confidenceThreshold.addEventListener('input', function() {
-                const thresholdValue = this.value;
-                confidenceThresholdValue.textContent = thresholdValue;
-                
-                // Envoyer le nouveau seuil au serveur
-                fetch('/set_confidence_threshold', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ threshold: thresholdValue / 100 })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        console.error("Erreur lors de la mise à jour du seuil:", data.error);
-                    }
-                });
-            });
-            
-            // Activer/désactiver la détection automatique
-            autoDetectionToggle.addEventListener('change', function() {
-                isAutoDetectionEnabled = this.checked;
-                if (!isAutoDetectionEnabled) {
-                    detectionProgress.style.width = '0%';
-                }
-            });
-            
-            // Mettre à jour la lettre détectée
-            function updateCurrentLetter() {
-                fetch('/get_current_prediction')
-                .then(response => response.json())
-                .then(data => {
-                    const letter = data.letter;
-                    const confidence = data.confidence;
-                    
-                    if (letter) {
-                        // Afficher la lettre avec sa confiance
-                        currentLetter.textContent = `${letter} (${(confidence * 100).toFixed(0)}%)`;
-                        addLetterText.textContent = `"${letter}"`;
-                        addLetterBtn.disabled = false;
-                        
-                        // Logique de détection automatique
-                        if (isAutoDetectionEnabled) {
-                            const now = Date.now();
-                            
-                            if (letter !== lastLetter) {
-                                // Nouvelle lettre détectée, réinitialiser le compteur
-                                lastLetter = letter;
-                                letterStartTime = now;
-                                detectionProgress.style.width = '0%';
-                            } else {
-                                // Même lettre, vérifier le temps écoulé
-                                const elapsedTime = now - letterStartTime;
-                                const progressPercentage = Math.min(100, (elapsedTime / detectionDuration) * 100);
-                                detectionProgress.style.width = `${progressPercentage}%`;
-                                
-                                if (elapsedTime >= detectionDuration && letter !== lastAddedLetter) {
-                                    // Le temps est écoulé, ajouter la lettre
-                                    addLetterToText(letter);
-                                    lastAddedLetter = letter;
-                                    
-                                    // Réinitialiser pour éviter d'ajouter plusieurs fois la même lettre
-                                    letterStartTime = now;
-                                    detectionProgress.style.width = '0%';
-                                }
-                            }
-                        }
-                    } else {
-                        currentLetter.textContent = "-";
-                        addLetterText.textContent = "";
-                        addLetterBtn.disabled = true;
-                        
-                        // Réinitialiser le compteur si aucune lettre n'est détectée
-                        if (isAutoDetectionEnabled) {
-                            detectionProgress.style.width = '0%';
-                            lastLetter = '';
-                        }
-                    }
-                });
-            }
-            
-            // Ajouter une lettre au texte
-            function addLetterToText(letter) {
-                fetch('/add_letter', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ letter: letter })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        capturedText.textContent = data.text;
-                    }
-                });
-            }
-            
-            // Mettre à jour la lettre toutes les 100ms
-            setInterval(updateCurrentLetter, 100);
-            
-            // Ajouter la lettre détectée actuellement (bouton manuel)
-            addLetterBtn.addEventListener('click', function() {
-                fetch('/add_letter', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ letter: 'current' })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        capturedText.textContent = data.text;
-                        // Mettre à jour la dernière lettre ajoutée pour éviter les doublons en mode auto
-                        if (currentLetter.textContent !== "-") {
-                            lastAddedLetter = currentLetter.textContent;
-                        }
-                    } else if (data.error) {
-                        alert(data.error);
-                    }
-                });
-            });
-            
-            // Ajouter un espace
-            addSpaceBtn.addEventListener('click', function() {
-                fetch('/add_letter', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ letter: ' ' })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        capturedText.textContent = data.text;
-                        // Réinitialiser la dernière lettre ajoutée après un espace
-                        lastAddedLetter = '';
-                    }
-                });
-            });
-            
-            // Effacer le texte
-            clearTextBtn.addEventListener('click', function() {
-                fetch('/clear_text', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        capturedText.textContent = '';
-                        lastAddedLetter = '';
-                    }
-                });
-            });
-        });
-    </script>
 </body>
 </html>
+
