@@ -209,6 +209,97 @@
         .feature-card:nth-child(3) {
             animation-delay: 0.4s;
         }
+
+        /* About Section Styles */
+        .about-section {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 5rem 0;
+            margin-top: 4rem;
+        }
+
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .about-title {
+            color: var(--secondary-color);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .about-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            margin: 1rem auto;
+            border-radius: 2px;
+        }
+
+        .about-description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: var(--text-color);
+            margin-bottom: 2.5rem;
+        }
+
+        .team-members {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .team-member {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .team-member:hover {
+            transform: translateY(-5px);
+        }
+
+        .team-member-name {
+            color: var(--secondary-color);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .linkedin-link {
+            color: #0077b5;
+            font-size: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .linkedin-link:hover {
+            color: #005582;
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .team-members {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .team-member {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -263,6 +354,43 @@
             </div>
         </div>
     </div>
+
+    <section class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <h2 class="about-title">About Us</h2>
+                <p class="about-description">
+                    We are a team of four passionate students who created this project with a noble mission: to help deaf children and their parents learn the ABCs in American Sign Language. Our platform combines technology and education to make learning ASL accessible, engaging, and fun for everyone.
+                </p>
+                <div class="team-members">
+                    <div class="team-member">
+                        <div class="team-member-name">Hamza Ait Youssef</div>
+                        <a href="https://www.linkedin.com/in/hamza-ait-youssef-76164526a/" target="_blank" class="linkedin-link">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                    <div class="team-member">
+                        <div class="team-member-name">Khayati Diae</div>
+                        <a href="https://www.linkedin.com/in/khayatidiae/" target="_blank" class="linkedin-link">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                    <div class="team-member">
+                        <div class="team-member-name">Belaid Hanaa</div>
+                        <a href="https://www.linkedin.com/in/hanaa-belaid-483166289/" target="_blank" class="linkedin-link">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                    <div class="team-member">
+                        <div class="team-member-name">Amina Louazir</div>
+                        <a href="https://www.linkedin.com/in/amina-louazir-19844127a/" target="_blank" class="linkedin-link">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
